@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>搞怪学术人格测试 · ATI + 主系统控制台</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg0:#0a0612;--bg1:#15102a;--bg2:#1f1640;--bg3:#2a1f5c;
+  --neon1:#ff6b9d;--neon2:#c44fff;--neon3:#4facff;--neon4:#00ffd5;
+  --gold:#f4c700;--text:#f1eef6;--muted:#8a7fb5;
+  --card:rgba(255,255,255,0.06);--border:rgba(196,79,255,0.3);
+}
+html,body{min-height:100vh;background:var(--bg0);color:var(--text);
+  font-family:'Segoe UI','PingFang SC','Microsoft YaHei',system-ui,sans-serif;overflow-x:hidden}
+.wrap{position:relative;z-index:1;max-width:780px;margin:0 auto;padding:30px 20px 60px}
+.wrap-wide{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:30px 20px 60px}
+.page{display:none;animation:pageIn .5s cubic-bezier(.34,1.56,.64,1)}
+.page.active{display:block}
+@keyframes pageIn{from{opacity:0;transform:translateY(30px) scale(.97)}to{opacity:1;transform:none}}
+
+.bgfx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bgfx::before{content:'';position:absolute;inset:-50%;
+  background:radial-gradient(circle at 20% 30%,rgba(255,107,157,0.15),transparent 40%),
+             radial-gradient(circle at 80% 70%,rgba(79,172,255,0.15),transparent 40%),
+             radial-gradient(circle at 50% 50%,rgba(196,79,255,0.12),transparent 50%);
+  animation:bgpulse 8s ease-in-out infinite}
+@keyframes bgpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.grid-bg{position:absolute;inset:0;opacity:0.06;
+  background-image:linear-gradient(rgba(255,255,255,0.5) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,0.5) 1px,transparent 1px);
+  background-size:50px 50px;
+  mask-image:radial-gradient(circle at center,black 20%,transparent 70%)}
+.fs{position:absolute;border-radius:50%;filter:blur(40px);opacity:.4}
+.fs1{width:280px;height:280px;background:var(--neon1);top:-100px;left:-80px;animation:floaty 12s ease-in-out infinite}
+.fs2{width:240px;height:240px;background:var(--neon2);bottom:-80px;right:-80px;animation:floaty 15s ease-in-out infinite 3s}
+.fs3{width:180px;height:180px;background:var(--neon3);top:40%;left:60%;animation:floaty 10s ease-in-out infinite 1s}
+@keyframes floaty{0%,100%{transform:translate(0,0)}33%{transform:translate(40px,-30px)}66%{transform:translate(-30px,20px)}}
+
+/* Top nav bar */
+.topnav{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin-bottom:24px}
+.topnav button{background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--muted);
+  padding:8px 16px;border-radius:20px;font-family:inherit;font-size:.8rem;cursor:pointer;
+  transition:all .2s;display:flex;align-items:center;gap:5px}
+.topnav button:hover{color:var(--text);border-color:var(--neon2)}
+.topnav button.active{background:linear-gradient(135deg,var(--neon1),var(--neon2));color:#fff;border:none;box-shadow:0 4px 16px rgba(196,79,255,0.3)}
+
+/* Welcome */
+.brand{text-align:center;margin-bottom:40px}
+.brand .logo{font-size:3.5rem;font-weight:900;letter-spacing:6px;
+  background:linear-gradient(135deg,var(--neon1),var(--neon2),var(--neon3));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-size:200% 200%;animation:logoShift 4s ease-in-out infinite}
+@keyframes logoShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.brand .tag{font-size:.85rem;color:var(--muted);letter-spacing:5px;margin-top:8px}
+.welcome h1{text-align:center;font-size:2rem;margin-bottom:10px;
+  background:linear-gradient(90deg,#fff,var(--neon1),var(--neon2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.welcome .sub{text-align:center;color:var(--muted);margin-bottom:36px;line-height:1.8;font-size:.95rem}
+.info-row{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-bottom:36px}
+.info-card{background:var(--card);border:1px solid var(--border);backdrop-filter:blur(10px);
+  border-radius:14px;padding:16px 18px;text-align:center;min-width:110px;transition:transform .3s}
+.info-card:hover{transform:translateY(-4px)}
+.info-card .ic{font-size:1.6rem;margin-bottom:4px}
+.info-card .v{font-size:1.5rem;font-weight:bold;color:var(--neon2);font-family:Consolas,monospace}
+.info-card .l{font-size:.72rem;color:var(--muted);margin-top:4px;letter-spacing:1px}
+.start-btn{display:block;width:100%;max-width:340px;margin:0 auto;padding:18px;font-size:1.15rem;font-weight:bold;
+  color:#fff;border:none;border-radius:50px;cursor:pointer;letter-spacing:3px;
+  background:linear-gradient(135deg,var(--neon1),var(--neon2),var(--neon3));
+  background-size:200% auto;animation:btnGlow 3s linear infinite;
+  box-shadow:0 10px 40px rgba(196,79,255,0.35);transition:all .2s}
+.start-btn:hover{transform:translateY(-3px);box-shadow:0 15px 50px rgba(196,79,255,0.5)}
+@keyframes btnGlow{to{background-position:200% center}}
+.disclaimer{text-align:center;color:#5c5580;font-size:.7rem;margin-top:24px;line-height:1.8}
+
+/* Quiz */
+.topbar{display:flex;align-items:center;gap:16px;margin-bottom:24px}
+.ring{width:56px;height:56px;border-radius:50%;position:relative;
+  background:conic-gradient(var(--neon2) calc(var(--prog)*1%),rgba(255,255,255,0.1) 0);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ring::before{content:'';position:absolute;inset:4px;border-radius:50%;background:var(--bg1)}
+.ring span{position:relative;font-weight:bold;font-family:Consolas,monospace;color:var(--neon2);font-size:.75rem}
+.pi{flex:1}
+.pi .label{font-size:.75rem;color:var(--muted);letter-spacing:2px}
+.pi .bar{height:8px;background:rgba(255,255,255,0.08);border-radius:4px;margin-top:8px;overflow:hidden}
+.pi .fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--neon1),var(--neon2),var(--neon3));transition:width .5s cubic-bezier(.34,1.56,.64,1)}
+.qcard{background:var(--card);border:1px solid var(--border);backdrop-filter:blur(16px);
+  border-radius:20px;padding:32px 24px;margin-bottom:20px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.4)}
+.q-text{font-size:1.1rem;font-weight:600;line-height:1.65;margin-bottom:24px;color:#f1eef6}
+.q-source{display:inline-flex;align-items:center;gap:6px;font-size:.7rem;color:var(--muted);
+  background:rgba(255,255,255,0.05);padding:4px 10px;border-radius:12px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.08)}
+.options{display:flex;flex-direction:column;gap:10px}
+.opt{width:100%;text-align:left;padding:14px 16px;background:rgba(255,255,255,0.04);
+  border:2px solid var(--border);border-radius:14px;color:var(--text);cursor:pointer;
+  font-size:.95rem;line-height:1.5;font-family:inherit;
+  transition:all .25s cubic-bezier(.34,1.56,.64,1);display:flex;align-items:center;gap:14px}
+.opt:hover{transform:translateX(8px);border-color:var(--neon2);background:rgba(196,79,255,0.12);box-shadow:0 4px 20px rgba(196,79,255,0.25)}
+.opt.selected{border-color:var(--neon2);background:rgba(196,79,255,0.2);box-shadow:0 0 30px rgba(196,79,255,0.3);transform:translateX(8px)}
+.opt i{width:28px;height:28px;border-radius:50%;background:rgba(196,79,255,0.2);color:var(--neon2);
+  display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0}
+.opt.selected i{background:var(--neon2);color:#fff}
+.nav-row{display:flex;gap:12px}
+.nb{padding:12px 24px;border-radius:30px;border:none;cursor:pointer;font-family:inherit;
+  font-weight:bold;font-size:.95rem;transition:all .2s}
+.nb-prev{background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border)}
+.nb-prev:hover:not(:disabled){color:var(--text);border-color:var(--neon3)}
+.nb-next{margin-left:auto;background:linear-gradient(135deg,var(--neon1),var(--neon2));color:#fff;
+  box-shadow:0 6px 20px rgba(196,79,255,0.3)}
+.nb-next:hover:not(:disabled){transform:translateY(-2px)}
+.nb:disabled{opacity:.35;cursor:not-allowed}
+
+/* Result */
+.result-wrap{padding-bottom:20px}
+.res-badge{display:inline-block;padding:6px 14px;border-radius:20px;font-size:.7rem;letter-spacing:3px;
+  color:var(--neon2);background:rgba(196,79,255,0.15);border:1px solid var(--border);margin-bottom:10px}
+.code-big{font-size:5rem;font-weight:900;letter-spacing:4px;text-align:center;
+  background:linear-gradient(135deg,var(--gold),var(--neon1),var(--neon2),var(--gold));
+  background-size:300% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  animation:logoShift 5s ease-in-out infinite;margin:10px 0 6px;text-shadow:0 0 40px rgba(196,79,255,0.3)}
+.type-sub{text-align:center;color:var(--muted);font-size:.9rem;margin-bottom:18px;letter-spacing:2px}
+.animal-card{font-size:5rem;text-align:center;margin:12px 0;animation:animalPop .8s cubic-bezier(.34,1.56,.64,1)}
+@keyframes animalPop{0%{transform:scale(0) rotate(-20deg)}100%{transform:scale(1) rotate(0)}}
+.rs{background:var(--card);border:1px solid var(--border);backdrop-filter:blur(12px);
+  border-radius:18px;padding:20px;margin-bottom:16px;box-shadow:0 10px 40px rgba(0,0,0,0.3)}
+.rs h3{font-size:1rem;margin-bottom:14px;color:var(--neon2);letter-spacing:1px;display:flex;gap:8px;align-items:center}
+.quote{font-size:1rem;line-height:1.8;color:var(--text);border-left:3px solid var(--neon2);padding-left:14px}
+.fl{list-style:none}
+.fl li{padding:8px 0 8px 28px;position:relative;font-size:.92rem;line-height:1.6}
+.fl li i{position:absolute;left:0;top:10px;color:var(--gold);font-size:.8rem}
+.pairs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pair{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center}
+.pair .pic{font-size:2.2rem;margin-bottom:4px}
+.pair .lbl{font-size:.65rem;letter-spacing:2px;color:var(--muted);margin-bottom:4px}
+.pair .val{font-size:.85rem;color:var(--text);line-height:1.5}
+.easter{background:linear-gradient(135deg,rgba(244,199,0,0.1),rgba(196,79,255,0.08));
+  border:1px dashed var(--gold);border-radius:18px;padding:16px;margin-bottom:16px;text-align:center}
+.easter .lbl{font-size:.8rem;color:var(--gold);letter-spacing:2px;margin-bottom:8px}
+.easter .cnt{font-size:.95rem;color:var(--text);line-height:1.7}
+.ar{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.ab{flex:1;min-width:140px;padding:14px 18px;border-radius:30px;border:none;cursor:pointer;font-family:inherit;
+  font-weight:bold;font-size:.95rem;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
+.ab-share{background:linear-gradient(135deg,var(--neon1),var(--neon2));color:#fff;box-shadow:0 6px 20px rgba(196,79,255,0.3)}
+.ab-share:hover{transform:translateY(-2px)}
+.ab-dash{background:linear-gradient(135deg,var(--neon3),var(--neon4));color:#fff;box-shadow:0 6px 20px rgba(79,172,255,0.3)}
+.ab-dash:hover{transform:translateY(-2px)}
+.ab-export{background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border)}
+.ab-export:hover{color:var(--text)}
+.ab-restart{background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border)}
+.ab-restart:hover{color:var(--text)}
+.dg{display:flex;flex-direction:column;gap:12px}
+.dr{display:grid;grid-template-columns:70px 1fr 70px;align-items:center;gap:10px}
+.dl,.de{font-size:.72rem;color:var(--muted);letter-spacing:1px;text-align:center;font-family:Consolas,monospace}
+.db{height:12px;background:rgba(255,255,255,0.06);border-radius:6px;position:relative;overflow:visible}
+.dc{position:absolute;top:-2px;bottom:-2px;left:50%;width:2px;background:var(--muted);opacity:.4}
+.df{height:100%;border-radius:6px;position:relative;transition:width 1s cubic-bezier(.34,1.56,.64,1)}
+
+/* Confetti */
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden}
+.cp{position:absolute;top:-10px;animation:cfall linear forwards}
+@keyframes cfall{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+
+/* Dashboard */
+.hdr{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:24px}
+.hdr .left .logo{font-size:2rem;font-weight:900;letter-spacing:3px;
+  background:linear-gradient(135deg,var(--gold),var(--neon2),var(--neon1));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-size:200% 200%;animation:logoShift 4s ease-in-out infinite}
+.hdr .left .tag{font-size:.72rem;color:var(--muted);letter-spacing:3px;margin-top:4px}
+.hdr .actn{display:flex;gap:8px;flex-wrap:wrap}
+.btn{padding:9px 16px;border-radius:20px;border:1px solid var(--border);cursor:pointer;font-family:inherit;
+  font-size:.8rem;font-weight:bold;transition:all .2s;display:inline-flex;align-items:center;gap:5px;color:var(--text)}
+.btn-primary{background:linear-gradient(135deg,var(--neon1),var(--neon2));color:#fff;border:none;box-shadow:0 4px 16px rgba(196,79,255,0.3)}
+.btn-primary:hover{transform:translateY(-2px)}
+.btn-ghost{background:rgba(255,255,255,0.04)}
+.btn-ghost:hover{background:rgba(196,79,255,0.15);border-color:var(--neon2)}
+.btn-danger{background:rgba(255,107,157,0.12);color:var(--neon1);border-color:rgba(255,107,157,0.3)}
+.btn-danger:hover{background:rgba(255,107,157,0.2);color:#fff}
+input[type=file]{display:none}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:20px}
+.stat{background:var(--card);border:1px solid var(--border);backdrop-filter:blur(10px);
+  border-radius:14px;padding:16px 18px;position:relative;overflow:hidden}
+.stat::before{content:'';position:absolute;top:-30px;right:-30px;width:70px;height:70px;border-radius:50%;filter:blur(20px);opacity:.4}
+.stat.t1::before{background:var(--neon2)}
+.stat.t2::before{background:var(--neon3)}
+.stat.t3::before{background:var(--gold)}
+.stat.t4::before{background:var(--neon1)}
+.stat .lbl{font-size:.68rem;color:var(--muted);letter-spacing:2px;margin-bottom:4px}
+.stat .v{font-size:2rem;font-weight:900;font-family:Consolas,monospace}
+.stat .sub{font-size:.7rem;color:var(--muted);margin-top:3px}
+
+.chart-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-bottom:20px}
+.cbox{background:var(--card);border:1px solid var(--border);backdrop-filter:blur(10px);
+  border-radius:16px;padding:18px;position:relative}
+.cbox h3{font-size:.9rem;color:var(--neon2);letter-spacing:1px;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.cbox.half{grid-column:span 6}
+@media(max-width:900px){.cbox.half{grid-column:span 12}}
+.chart-wrap{position:relative;height:260px}
+
+.tbl-wrap{background:var(--card);border:1px solid var(--border);backdrop-filter:blur(10px);
+  border-radius:16px;overflow:hidden;margin-bottom:20px}
+.tbl-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.tbl-head h3{font-size:.9rem;color:var(--neon2);display:flex;align-items:center;gap:6px}
+.tbl-head input{background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);
+  padding:6px 12px;border-radius:16px;font-size:.8rem;font-family:inherit;width:200px}
+.tbl-head input:focus{outline:none;border-color:var(--neon2)}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+thead tr{background:rgba(196,79,255,0.08)}
+th{text-align:left;padding:10px 14px;font-size:.68rem;color:var(--muted);letter-spacing:2px;font-weight:bold}
+td{padding:10px 14px;border-top:1px solid rgba(255,255,255,0.04)}
+tr:hover td{background:rgba(196,79,255,0.04)}
+td .tcode{font-family:Consolas,monospace;color:var(--neon2);font-weight:bold;font-size:.78rem}
+td .typecode{font-weight:bold;color:var(--gold);font-size:.88rem}
+td .animal{font-size:1.3rem}
+.empty{text-align:center;padding:50px 20px;color:var(--muted)}
+.empty .bigic{font-size:3rem;margin-bottom:12px;opacity:.5}
+
+.bdg{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.62rem;font-family:Consolas,monospace;letter-spacing:1px}
+.bdg-t{background:rgba(255,107,157,0.18);color:var(--neon1)}
+.bdg-p{background:rgba(79,172,255,0.18);color:var(--neon3)}
+.bdg-g{background:rgba(244,199,0,0.18);color:var(--gold)}
+.bdg-s{background:rgba(0,255,213,0.18);color:var(--neon4)}
+
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(10,6,18,0.85);backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
+.modal-bg.show{display:flex;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:linear-gradient(180deg,var(--bg2),var(--bg1));border:1px solid var(--border);border-radius:18px;
+  max-width:480px;width:100%;max-height:85vh;overflow-y:auto;padding:26px;position:relative;
+  animation:popIn .3s cubic-bezier(.34,1.56,.64,1)}
+@keyframes popIn{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+.modal .xbtn{position:absolute;top:10px;right:12px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem}
+.modal .xbtn:hover{color:var(--text)}
+.modal .mc{font-size:3rem;font-weight:900;background:linear-gradient(135deg,var(--gold),var(--neon1),var(--neon2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center}
+.modal .mt{text-align:center;color:var(--muted);margin:4px 0 12px;font-size:.88rem}
+.modal .ma{text-align:center;font-size:3rem;margin:6px 0}
+.modal .mq{border-left:3px solid var(--neon2);padding-left:12px;color:var(--text);font-style:italic;line-height:1.7;margin-bottom:14px;font-size:.92rem}
+.modal .dm{margin-bottom:12px}
+.modal .dm .label{font-size:.68rem;color:var(--muted);letter-spacing:1px;margin-bottom:4px;display:flex;justify-content:space-between}
+.modal .dm .bar{height:5px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden}
+.modal .dm .bar .fi{height:100%;border-radius:3px}
+
+/* Toast */
+.toast{position:fixed;top:30px;left:50%;transform:translateX(-50%) translateY(-30px);
+  background:rgba(20,10,40,0.95);color:#fff;padding:12px 24px;border-radius:30px;
+  border:1px solid var(--neon2);box-shadow:0 10px 30px rgba(196,79,255,0.4);
+  opacity:0;transition:all .3s;z-index:999;font-size:.9rem}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(max-width:520px){
+  .code-big{font-size:3.5rem}
+  .pairs{grid-template-columns:1fr}
+  .dr{grid-template-columns:55px 1fr 55px}
+}
+</style>
+</head>
+<body>
+
+<div class="bgfx"><div class="grid-bg"></div><div class="fs fs1"></div><div class="fs fs2"></div><div class="fs fs3"></div></div>
+<div id="confetti"></div>
+
+<div class="topnav" id="topNav" style="display:none">
+  <button onclick="go('welcome')" id="navWelcome">🏠 首页</button>
+  <button onclick="go('quiz')" id="navQuiz">📝 测试</button>
+  <button onclick="go('dashboard')" id="navDash">📊 控制台</button>
+</div>
+
+<!-- ==================== WELCOME ==================== -->
+<div class="page active" id="welcome">
+<div class="wrap welcome">
+  <div class="brand">
+    <div class="logo">ATI</div>
+    <div class="tag">SCHOLAR ARCHETYPE TEST</div>
+  </div>
+  <h1>搞怪学术人格测试</h1>
+  <p class="sub">20 道不正经但有正经依据的题<br>测一测你是 30 种学术原型里的哪一只<br>答题 ≈ 放飞 ≈ 解压</p>
+  <div class="info-row">
+    <div class="info-card"><div class="ic">📝</div><div class="v">20</div><div class="l">道题目</div></div>
+    <div class="info-card"><div class="ic">🎭</div><div class="v">30</div><div class="l">种原型</div></div>
+    <div class="info-card"><div class="ic">⏱️</div><div class="v">3</div><div class="l">分钟搞定</div></div>
+    <div class="info-card"><div class="ic">🎓</div><div class="v">5</div><div class="l">个维度</div></div>
+  </div>
+  <button class="start-btn" onclick="startTest()">🚀 开始放飞自我</button>
+  <div style="text-align:center;margin-top:18px">
+    <button class="btn btn-ghost" onclick="go('dashboard')" style="color:var(--neon3);border-color:rgba(79,172,255,0.4)">
+      <i class="fa-solid fa-chart-line"></i> 📊 进入数据控制台
+    </button>
+  </div>
+  <p class="disclaimer">本测试纯娱乐，结果仅供参考，不构成任何学术评价</p>
+</div>
+</div>
+
+<!-- ==================== QUIZ ==================== -->
+<div class="page" id="quiz">
+<div class="wrap">
+  <div class="topbar">
+    <div class="ring" style="--prog:5"><span id="rn">1/20</span></div>
+    <div class="pi"><div class="label">PROGRESS · 进度</div><div class="bar"><div class="fill" id="qfill" style="width:5%"></div></div></div>
+  </div>
+  <div class="qcard">
+    <div class="q-source"><i class="fa-solid fa-flask"></i><span id="qSrc">来源：—</span></div>
+    <div class="q-text" id="qTxt"></div>
+    <div class="options" id="qOpts"></div>
+  </div>
+  <div class="nav-row">
+    <button class="nb nb-prev" onclick="prevQ()" id="bp">← 上一题</button>
+    <button class="nb nb-next" onclick="nextQ()" id="bn">下一题 →</button>
+  </div>
+</div>
+</div>
+
+<!-- ==================== RESULT ==================== -->
+<div class="page" id="result">
+<div class="wrap">
+  <div class="result-wrap">
+    <div class="res-badge" id="resBadge">YOUR ARCHETYPE</div>
+    <div class="code-big" id="resCode">SAGE</div>
+    <div class="type-sub" id="resSub">— 原型学者 —</div>
+    <div class="animal-card" id="resAnimal">🦉</div>
+    <div class="rs"><h3><i class="fa-solid fa-quote-left"></i> 一句话画像</h3><p class="quote" id="resQuote">—</p></div>
+    <div class="rs"><h3><i class="fa-solid fa-chart-column"></i> 五维雷达</h3><div class="dg" id="resDims"></div></div>
+    <div class="rs"><h3><i class="fa-solid fa-user-astronaut"></i> 6 条核心特征</h3><ul class="fl" id="resFeats"></ul></div>
+    <div class="rs"><h3><i class="fa-solid fa-heart-pulse"></i> 压力下的真实状态</h3><p class="quote" id="resStress" style="border-left-color:var(--neon1)">—</p></div>
+    <div class="rs"><h3><i class="fa-solid fa-face-grin-stars"></i> 理想导师 & 噩梦队友</h3>
+      <div class="pairs">
+        <div class="pair"><div class="pic" id="rIc">👴</div><div class="lbl">IDEAL 理想导师</div><div class="val" id="rIt">—</div></div>
+        <div class="pair"><div class="pic" id="rWc">😵</div><div class="lbl">NIGHTMARE 噩梦队友</div><div class="val" id="rWt">—</div></div>
+      </div>
+    </div>
+    <div class="easter"><div class="lbl">🎁 专属彩蛋 · 学术梗</div><div class="cnt" id="resEaster">—</div></div>
+    <div class="rs"><h3><i class="fa-solid fa-wand-magic-sparkles"></i> 发展建议</h3><p class="quote" id="resAdvice" style="border-left-color:var(--gold);text-align:left">—</p></div>
+    <div class="ar">
+      <button class="ab ab-share" onclick="share()"><i class="fa-solid fa-share"></i> 分享给同学</button>
+      <button class="ab ab-dash" onclick="go('dashboard')"><i class="fa-solid fa-chart-line"></i> 📊 看全部数据</button>
+      <button class="ab ab-export" onclick="exportAll()"><i class="fa-solid fa-download"></i> 导出 JSON</button>
+      <button class="ab ab-restart" onclick="location.reload()">🔄 重新放飞</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== DASHBOARD ==================== -->
+<div class="page" id="dashboard">
+<div class="wrap-wide">
+  <div class="hdr">
+    <div class="left">
+      <div class="logo">📊 ATI · CONSOLE</div>
+      <div class="tag">全局数据监控台</div>
+    </div>
+    <div class="actn">
+      <button class="btn btn-ghost" onclick="dashRefresh()"><i class="fa-solid fa-rotate"></i> 刷新</button>
+      <label class="btn btn-ghost" style="cursor:pointer"><i class="fa-solid fa-file-import"></i> 导入 JSON<input type="file" accept=".json" onchange="importJSON(this)"></label>
+      <button class="btn btn-primary" onclick="exportAll()"><i class="fa-solid fa-download"></i> 导出全部</button>
+      <button class="btn btn-danger" onclick="clearAll()"><i class="fa-solid fa-trash"></i> 清空</button>
+    </div>
+  </div>
+
+  <div class="stats" id="statsRow"></div>
+
+  <div class="chart-grid">
+    <div class="cbox half">
+      <h3>🎭 人格类型分布 TOP 15</h3>
+      <div class="chart-wrap"><canvas id="pieChart"></canvas></div>
+    </div>
+    <div class="cbox half">
+      <h3>📊 五维度平均分</h3>
+      <div class="chart-wrap"><canvas id="dimChart"></canvas></div>
+    </div>
+    <div class="cbox half">
+      <h3>📈 近 14 天测试趋势</h3>
+      <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+    </div>
+    <div class="cbox half">
+      <h3>🎯 群体人格雷达</h3>
+      <div class="chart-wrap"><canvas id="radarChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="tbl-wrap">
+    <div class="tbl-head">
+      <h3>📋 全部记录 <span id="tblCount" style="color:var(--muted);font-size:.7rem"></span></h3>
+      <input type="text" id="searchBox" placeholder="🔍 搜索..." oninput="renderTable()">
+    </div>
+    <div id="tblContainer"></div>
+  </div>
+</div>
+</div>
+
+<!-- Modal -->
+<div class="modal-bg" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modalBody"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'ati_survey_results';
+
+const DIMS = [
+  { id:'D1', name:'理论 T vs 实证 P', left:'T·理论',  right:'P·实证' },
+  { id:'D2', name:'通才 G vs 专才 S', left:'G·通才',  right:'S·专才' },
+  { id:'D3', name:'独行 O vs 协作 L', left:'O·独行',  right:'L·协作' },
+  { id:'D4', name:'长跑 M vs 冲刺 F', left:'M·长跑',  right:'F·冲刺' },
+  { id:'D5', name:'表达 X vs 沉默 Q', left:'X·表达',  right:'Q·沉默' },
+];
+
+const QS = [
+  { src:'大五人格 · 开放性维度', text:'导师丢给你一篇完全看不懂的论文，第一反应是？',
+    a:{t:'打开维基补背景，先建立概念框架',d:{D1:2,D2:1}},
+    b:{t:'直接跳到实验看数据，看不懂的理论跳过',d:{D1:-2,D4:.5}},
+    c:{t:'google 这篇的 cited by 看别人怎么说',d:{D1:.5,D2:.8}},
+    d:{t:'放弃，打开手机看猫视频',d:{D1:-.5,D4:-1}} },
+  { src:'冒名顶替综合征研究', text:'写论文卡壳了，你最可能怎么自救？',
+    a:{t:'重读领域经典，从理论源头找灵感',d:{D1:2,D3:-.5}},
+    b:{t:'去数据库挖真实数据反推方向',d:{D1:-2,D4:.5}},
+    c:{t:'抓师兄师姐喝咖啡瞎扯',d:{D1:0,D3:2,D5:1}},
+    d:{t:'换题，这个太难了',d:{D1:-.5,D4:-1}} },
+  { src:'波普尔证伪主义', text:'"一个理论能不能被证伪"这件事对你来说？',
+    a:{t:'超重要！这才是科学的本质',d:{D1:2,D2:.5}},
+    b:{t:'只要能预测就好，证伪是哲学家的事',d:{D1:-2,D2:-.5}},
+    c:{t:'取决于领域，物理和社会学标准不一样',d:{D1:.5,D2:1}},
+    d:{t:'好问题，可惜我没想过',d:{D1:.2,D5:-.5}} },
+  { src:'库恩范式转换', text:'读到一篇完全颠覆认知的新文献，你会？',
+    a:{t:'立刻跟进它引用的所有论文重构认知',d:{D1:2,D2:.8}},
+    b:{t:'等半年看它有没有被验证再说',d:{D1:-2,D4:.5}},
+    c:{t:'和同好讨论看大家怎么看',d:{D1:.3,D3:1.5,D5:1}},
+    d:{t:'我认知很稳，它大概率有问题',d:{D1:.5,D4:-.3}} },
+  { src:'T型人才模型', text:'参加一个完全不相关领域的讲座，你会？',
+    a:{t:'欣然前往！说不定能跨界碰撞',d:{D2:2,D5:.5}},
+    b:{t:'浪费时间，不如多读两篇本领域文章',d:{D2:-2,D4:.5}},
+    c:{t:'去听听但听到一半肯定走神',d:{D2:.8,D4:-.5}},
+    d:{t:'谁去？发个ppt就行',d:{D2:.2,D5:-.5}} },
+  { src:'信息过载研究', text:'你的书架/桌面最像哪种？',
+    a:{t:'什么都有：量子力学书旁摆着花艺教程',d:{D2:2,D3:-.3}},
+    b:{t:'一整面墙全是本领域经典',d:{D2:-2,D4:.5}},
+    c:{t:'电子书为主按主题分类建文件夹',d:{D2:.5,D4:.5}},
+    d:{t:'你说哪个书架？我只有床头柜Kindle',d:{D2:0,D4:-.5}} },
+  { src:'雅各布斯连接型研究', text:'组会汇报你最想做哪个部分？',
+    a:{t:'宏大的研究背景和未来展望',d:{D2:2,D5:.5}},
+    b:{t:'实验方法和数据结果',d:{D2:-2,D4:.5}},
+    c:{t:'引言吧，感觉好水一点',d:{D2:.8,D4:-.3}},
+    d:{t:'我想做PPT排版',d:{D2:0,D3:-.5,D5:-.2}} },
+  { src:'多学科创造力', text:'你觉得一个好的博士生应该？',
+    a:{t:'广泛涉猎，做有连接力的研究',d:{D2:2,D3:.3}},
+    b:{t:'在一个小问题上做到世界领先',d:{D2:-2,D4:.5}},
+    c:{t:'先宽后窄，前两年博后再精修',d:{D2:.8,D4:.3}},
+    d:{t:'能毕业就行，想那么多干嘛',d:{D2:0,D4:-1}} },
+  { src:'学术合作效率', text:'如果可以选择，你最想完成哪件事？',
+    a:{t:'自己一个人写完一本书',d:{D3:2,D2:.5}},
+    b:{t:'和一群大佬合作发顶刊',d:{D3:-2,D5:.5}},
+    c:{t:'带小团队做有影响力的项目',d:{D3:-1,D5:.5,D4:.3}},
+    d:{t:'跟导师喝下午茶被点拨两句',d:{D3:.1,D5:.3}} },
+  { src:'学术孤独研究', text:'实验室没人的时候，你感觉？',
+    a:{t:'太爽了！终于可以专心干活',d:{D3:2,D5:-.5}},
+    b:{t:'有点孤单，想找人讨论一下',d:{D3:-2,D5:.3}},
+    c:{t:'还行，平时也独来独往',d:{D3:1,D5:-.3}},
+    d:{t:'有点害怕，先回家再说',d:{D3:.3,D4:-.5}} },
+  { src:'集体智商', text:'你觉得多人头脑风暴是？',
+    a:{t:'效率极低，一个人想更快',d:{D3:2,D5:-.2}},
+    b:{t:'超有用！灵感都是碰出来的',d:{D3:-2,D5:.5}},
+    c:{t:'看人，有些同事一加就变傻',d:{D3:.3,D5:.2}},
+    d:{t:'不如先各自写再合并评论',d:{D3:-.5,D4:.5}} },
+  { src:'冲突研究', text:'组会你和合作者意见完全相反，你会？',
+    a:{t:'按我来，反正最后会证明我是对的',d:{D3:2,D5:-.3,D1:.5}},
+    b:{t:'好好谈，各退一步找中间方案',d:{D3:-2,D5:.5}},
+    c:{t:'先放着，会后单独找ta聊',d:{D3:.2,D5:.1,D4:.3}},
+    d:{t:'那就不做了，换个方向吧',d:{D3:.1,D4:-1}} },
+  { src:'拖延症 · 时间折扣理论', text:'论文deadline还有两周，你现在？',
+    a:{t:'每天写500字稳步推进',d:{D4:2,D3:.3}},
+    b:{t:'前一周放假，最后三天通宵写完',d:{D4:-2,D2:.5}},
+    c:{t:'写了大纲，还没动笔',d:{D4:.2,D2:.3}},
+    d:{t:'其实deadline是一周前，我挂了',d:{D4:-1,D2:.1}} },
+  { src:'一万小时定律', text:'你相信"每天4小时坚持三年"能成高手吗？',
+    a:{t:'当然！坚持就是胜利',d:{D4:2,D3:.3}},
+    b:{t:'别骗我了，天赋>努力',d:{D4:-2,D1:.3}},
+    c:{t:'方法不对十年也没用',d:{D4:.3,D1:.5}},
+    d:{t:'我连每天1小时都坚持不了',d:{D4:-1,D5:-.3}} },
+  { src:'学术倦怠', text:'连续高强度工作3个月后你会？',
+    a:{t:'习惯了，我的学术生涯就是这样',d:{D4:2,D1:.3}},
+    b:{t:'身体抗议，必须彻底放假一周',d:{D4:-2,D5:.5}},
+    c:{t:'换个方向继续，换方向=休息',d:{D4:.3,D2:.5}},
+    d:{t:'我会在这之前就躺平',d:{D4:-1,D2:.1}} },
+  { src:'学术节律', text:'你最有生产力的时段是？',
+    a:{t:'早9到晚9规律稳定',d:{D4:2,D3:.3}},
+    b:{t:'凌晨2-4点灵感爆了',d:{D4:-2,D5:-.3}},
+    c:{t:'随缘，有时连续三天高产有时废掉',d:{D4:0,D2:.3}},
+    d:{t:'我只有deadline前12小时有生产力',d:{D4:-1,D2:0}} },
+  { src:'印象管理', text:'组会汇报被导师当场指出错误，你会？',
+    a:{t:'当场解释我的想法据理力争',d:{D5:2,D1:.5}},
+    b:{t:'好的老师我改，下去慢慢想明白',d:{D5:-2,D2:.3}},
+    c:{t:'下来找导师单独聊清楚',d:{D5:.1,D4:.3}},
+    d:{t:'大脑空白，会议结束立刻逃离',d:{D5:-1,D2:-.3}} },
+  { src:'自我呈现', text:'你会在小红书/公众号写学术笔记吗？',
+    a:{t:'会！分享让我快乐还能涨粉',d:{D5:2,D2:.5}},
+    b:{t:'不会，我的研究不需要公众知道',d:{D5:-2,D1:.3}},
+    c:{t:'偶尔写只发小圈子',d:{D5:.3,D3:.5}},
+    d:{t:'我连朋友圈都不发',d:{D5:-1,D3:.3}} },
+  { src:'表达焦虑', text:'以下哪件事让你最焦虑？',
+    a:{t:'当众做30分钟seminar',d:{D5:-.5,D4:.2}},
+    b:{t:'写一封措辞严谨的邮件给大牛',d:{D5:.2,D1:.2}},
+    c:{t:'在餐厅和人拼桌吃饭',d:{D5:-1,D3:.2}},
+    d:{t:'想不出来，我没什么焦虑的',d:{D5:-.2,D4:.5}} },
+  { src:'知识传播价值', text:'你觉得学者应该花时间做科普吗？',
+    a:{t:'必须的！知识应该服务社会',d:{D5:2,D2:.5}},
+    b:{t:'不用，做好研究就是最大贡献',d:{D5:-2,D1:.3}},
+    c:{t:'看个人兴趣没有标准答案',d:{D5:.3,D2:.3}},
+    d:{t:'我想做但没人看得到',d:{D5:.2,D3:.2}} },
+];
+
+const TYPES = {
+  'TGOMX':{code:'SAGE',     animal:'🦉', name:'智慧猫头鹰', sub:'— 跨学科布道者 —',
+    quote:'在信息爆炸的世界，真正的智慧不是知道更多，而是连接更多。',
+    feats:['总能在看似不相关领域间发现奇妙联系','喜欢把复杂理论讲得让人恍然大悟','朋友遇到困惑时的"树洞导师"','书架上什么书都有一点','写过一篇没人看懂但自己觉得是杰作的论文','学术圈和朋友圈里"什么都懂一点的人"'],
+    stress:'压力下会突然极度聚焦 — 切断所有社交闭关一周，出来时问题已解决或你已解决了自己。',
+    ideal:'🧓 慈祥老教授，办公室堆满奇奇怪怪的书，愿意花一下午聊任何话题',
+    worst:'😒 每次开会都在推销自己单一领域、完全听不懂"跨界火花"的同事',
+    easter:'你最想写的论文题目是《论量子力学与红楼梦叙事结构的同构性》',
+    advice:'<strong>你的优势</strong>是连接力，但不要让广度稀释深度。选 1-2 个核心方向深钻，让你的跨学科视角成为降维打击。'},
+  'TGOMQ':{code:'HERMIT',   animal:'🧙', name:'隐居魔法师', sub:'— 沉默的通才 —',
+    quote:'我不是不想说话，只是还没遇到值得说的人。',
+    feats:['朋友圈三天可见其实从来没发过','脑子里有一整套宏大理论体系但从未跟人提过','写作精准到每个字改十几遍','书架上古代哲学到现代物理全套经典','组会只说 3 句话但都让全场安静','觉得大部分学术讨论都是在浪费时间'],
+    stress:'压力大时直接消失 — 关机一周没人知道你在哪，其实你在家躺着思考宇宙起源。',
+    ideal:'🧘 不爱说话但有真东西的导师，一个眼神就让你继续深挖',
+    worst:'🤗 每次见面都热情拥抱然后问长问短、社交能量把你榨干的同事',
+    easter:'博士论文有 7 个 appendix，每个都是另一篇独立论文水平，但没人读过',
+    advice:'<strong>你的优势</strong>是深度思考，但沉默是学术生涯的慢性毒药。每年强制自己做 1-2 次邀请报告。'},
+  'TGOFX':{code:'STAR',     animal:'⭐', name:'跨界短跑家', sub:'— 理论×通才×冲刺型 —',
+    quote:'长期积累广泛弹药，关键时刻精准轰炸。',
+    feats:['平时不显山露水，deadline 前突然爆发写出惊艳之作','交叉领域总能第一个找到切入点','短时间内消化新领域核心理论','平时在积累，关键时刻一剑封喉','同时在 3 个方向推进，哪个有机会就冲哪个','学术生涯就是一场有节奏的游击战'],
+    stress:'压力来临时反而异常兴奋 — 肾上腺素飙升，感觉能同时搞定 5 个 project。然后 crash 两周。',
+    ideal:'💥 精力充沛的青年导师，总能给你最前沿方向和最大自由度',
+    worst:'🐢 每次讨论都花半小时铺垫背景才进入正题的慢性子同事',
+    easter:'你是所有人中唯一一个真的读完 arXiv 每天新帖前 20 篇的人 — 但你是用手机刷的',
+    advice:'<strong>你的优势</strong>是厚积薄发的爆发力，但冲刺型工作容易忽略长期积淀。给自己留一片"不赶 deadline"的纯探索时间。'},
+  'TGOFQ':{mergeTo:'TGOMQ'},
+  'TGLMX':{code:'LEADER',   animal:'👑', name:'学术领袖', sub:'— 理论×协作×表达 —',
+    quote:'不是我一个人厉害，是我让一群人一起变得厉害。',
+    feats:['天生的项目组织者，能把散兵游勇变成科研战队','既能构建宏大理论又能说服他人相信它','每次组会都是你的主场，总能让讨论有结论','带过的学生都很优秀因为你真的在带','把学术当作事业而不是工作','邮箱每天几十封邀请信'],
+    stress:'压力来临时反而更精力充沛 — 开更多会写更多邮件像个不知疲倦的 CEO。但深夜 alone 时会突然崩溃。',
+    ideal:'🏆 已功成名就但仍愿意带新人的大牛导师',
+    worst:'😎 觉得自己一个人就能搞定一切、拒绝任何合作的独行侠同事',
+    easter:'你有一个秘密：当年第一作者论文的初稿也是你写的',
+    advice:'<strong>你的优势</strong>是综合领导力，但警惕"什么都自己上"的陷阱。学会说"不"。'},
+  'TGLMQ':{code:'SHEPHERD', animal:'🌾', name:'幕后牧羊人', sub:'— 沉默的协作理论家 —',
+    quote:'我不是主角，但我保证每个主角都走在正确的路上。',
+    feats:['团队里隐形的理论支柱，没人知道你贡献多大','把合作者推到台前自己默默把控方向','理论基础让整个团队研究不跑偏','很少第一作者但所有合作者都感谢你','讨论里你在听但最后那个关键问题往往是你提的','享受这种"被需要但不被看见"的位置'],
+    stress:'压力来临时反而更沉默 — 默默加班默默解决问题，直到一切恢复正常。',
+    ideal:'🌅 已退休但还愿意每周跟你喝杯咖啡的老派导师',
+    worst:'🗣️ 每次都想抢你半分钟发言时间的急功近利同事',
+    easter:'你手里有团队所有论文的"最终版"文件夹 — 每个版本都是你偷偷改的',
+    advice:'<strong>你的优势</strong>是支撑力，学术界资源分配遵循"可见性原则"。主动认领一些公开任务。'},
+  'TGLFX':{code:'BLAZE',    animal:'🔥', name:'理论燃点', sub:'— 协作×冲刺型 —',
+    quote:'召集众人，点燃激情，然后看大家一起燃烧。',
+    feats:['能在短时间内集结起一支队伍','擅长发起有冲击力的项目然后把火点起来','把爆发力注入团队，人人都被你感染','项目在你手里像野火蔓延','你是组里的"加速器"，但偶尔会烧到自己','项目越紧急你越亢奋'],
+    stress:'压力下反而燃得更旺 — 所有人都回去睡觉了你还开着灯写下一个 grant。',
+    ideal:'⚡ 同样精力充沛的青年导师',
+    worst:'🐢 开会两小时还没进入正题的团队',
+    easter:'你发起过 12 次"紧急但不重要"的新项目，其中 3 次意外爆了',
+    advice:'<strong>你的优势</strong>是点火能力，但"燃"完后容易留下一片灰烬。学会做项目的"收尾人"。'},
+  'TGLFQ':{code:'QUIET',    animal:'🤫', name:'沉默战术官', sub:'— 协作×沉默 —',
+    quote:'开会我不说话，但散会后所有人都按我想的方向去做。',
+    feats:['小组里话最少但最有决策权的人','你的沉默本身就是一种信号','你不说但大家知道你想要什么','把理论工具悄无声息注入团队','压力来了第一个扛，荣誉来了最后接','邮箱可能最满但永远回得最晚'],
+    stress:'压力下会消失 48 小时没人能联系上你。回来时已经有了完整解决方案。',
+    ideal:'🌑 不苟言笑但极度靠谱的导师',
+    worst:'🎤 话比想法多的同事',
+    easter:'你是全组唯一没有微信朋友圈的人，但全组朋友圈你都会偷偷看',
+    advice:'<strong>你的优势</strong>是控制力，但请记得分享 credit。把"做得好"换成一个笑脸。'},
+  'TSOMX':{code:'BLADE',    animal:'🔪', name:'精准利刃', sub:'— 理论×专才×独行 —',
+    quote:'在一个小问题上，我比所有人都锋利。',
+    feats:['极窄领域里理论深度无人能及','能让外行听懂你领域里最复杂的内容','论文引用数不高但每一个都是重量级','享受钻牛角尖的乐趣','理论工具锋利到能切开认知盲点','每次报告你都在给"内行"讲东西'],
+    stress:'压力下会更加"收敛" — 取消所有不必要活动，每天只做一件事直到把那个问题彻底啃下来。',
+    ideal:'🔬 只研究一个小问题但研究了 40 年的老科学家',
+    worst:'🌪️ 每次都想把你的研究和"大图景"联系起来的通才同事',
+    easter:'参考文献里 80% 是同一个领域论文，其中至少 3 篇是你自己的',
+    advice:'<strong>你的优势</strong>是极致精准，但窄领域的风险是"隧道视野"。每年强迫自己读 2 篇完全不同领域的顶刊。'},
+  'TSOMQ':{code:'MONK',     animal:'🧘', name:'扫地僧', sub:'— 沉默的理论大师 —',
+    quote:'我的论文没人看得懂，但这是他们的问题。',
+    feats:['极度专注于一个狭窄理论领域','不参加学术会议不做公开报告','偶尔发一篇论文没人能完全看懂','但每 3-5 年抛出一篇"改变游戏规则"的东西','不在乎谁认同，只在乎自己想不想明白','可能是学术界最神秘的人'],
+    stress:'压力大的方式就是正常工作 — 你本来就不跟人来往，压力只是让你更不想来往而已。',
+    ideal:'🏔️ 隐居山林式的导师，一年只下山 2 次讲 seminar',
+    worst:'📱 每 30 分钟就问你"做出来了吗"的导师',
+    easter:'你有一个 2000 行 LaTeX 文件，标题是《关于 X 的一些思考》，没人见过全文',
+    advice:'<strong>你的优势</strong>是极致专注，但论文写得只有你自己能看懂。花一个月做一次通俗化整理。'},
+  'TSOFX':{code:'LIGHTNING',animal:'⚡', name:'单点爆破', sub:'— 理论×专才×冲刺 —',
+    quote:'看准目标，一击必中。',
+    feats:['选定小问题全力以赴，短时间产出','理论工具锋利且精准','短时间写出让同行震惊的成果','不做长期项目，只做能"爆"的项目','享受"突然解决问题"的快感','学术生涯就是一系列精准爆破'],
+    stress:'压力下反而会更聚焦 — 把其他所有事推开，集中火力解决最核心那个问题。',
+    ideal:'🎯 从不拖泥带水的导师',
+    worst:'🌀 讨论来讨论去一个月没有结论的团队',
+    easter:'曾经一个下午写出的 preprint 被引用数超过前两年所有工作之和',
+    advice:'<strong>你的优势</strong>是爆发力，但冲刺后需要沉淀。让每个小成果连接成一条清晰的研究线。'},
+  'TSOFQ':{mergeTo:'TSOMQ'},
+  'TSLMX':{code:'FOUNDER',  animal:'🏛️', name:'学派奠基人', sub:'— 理论×专才×协作×表达 —',
+    quote:'我不是一个人在战斗，我在建立一个学派。',
+    feats:['理论深度+协作能力+表达能力三重满点','能把一个冷门方向变成热门','有能力打造自己的学术品牌','学生以成为你的弟子为荣','不仅在做研究，你在塑造研究共同体','这是最稀有的学术人格之一'],
+    stress:'压力来临时你会加倍工作 — 但请注意，学派不能只有你一个人。',
+    ideal:'👑 已经建立自己学派的大牛导师',
+    worst:'😎 觉得自己就是学派"独狼"同事',
+    easter:'google scholar 引用数在某个时间点突然翻倍 — 因为学生集体毕业',
+    advice:'<strong>你的优势</strong>是建学派的王者潜质，但要警惕"一言堂"。鼓励团队中的不同声音。'},
+  'TSLMQ':{code:'CANDLE',   animal:'🕯️', name:'守灯人', sub:'— 沉默的协作理论家 —',
+    quote:'我守着这盏灯，不是为了自己照路。',
+    feats:['团队的理论支柱，不抢风头但不可或缺','把团队理论基础打得扎扎实实','把别人推到台前自己默默在幕后','每次组会只在关键问题上发言','你的"那一句"是每次讨论的转折点','享受做幕后英雄'],
+    stress:'压力下加班更狠 — 默默地改到凌晨没人知道。',
+    ideal:'🌙 从不抢学生功劳的导师',
+    worst:'🎤 每次都想抢你理论 credit 去做汇报的同事',
+    easter:'你帮 6 个人改过论文，但 name 从来没出现在作者列表里',
+    advice:'<strong>你的优势</strong>是团队基石，学术界需要"署名"。下次帮别人改东西时考虑一下自己是不是也应该在作者列表里。'},
+  'TSLFX':{code:'STRIKE',   animal:'🥊', name:'团队爆破手', sub:'— 理论×专才×协作×冲刺 —',
+    quote:'带着窄而锋利的工具，和团队一起精准攻坚。',
+    feats:['把理论冲刺注入团队','擅长短周期密集理论攻关','能快速把想法变成可发表成果','团队里的"加速器"','在高压项目里你最可靠','喜欢和靠谱的人一起拼'],
+    stress:'压力下反而更高效 — deadline 越紧你越冷静。',
+    ideal:'🎯 和你一样精准且高效的导师',
+    worst:'🐢 拖后腿的队友',
+    easter:'你是全组唯一一个从不拖稿的人 — 你总是提前 2 天给',
+    advice:'<strong>你的优势</strong>是攻关能力，但冲刺型团队容易透支。主动和团队一起规划休整节奏。'},
+  'TSLFQ':{mergeTo:'TSLMQ'},
+  'PGOMX':{code:'NARRATOR', animal:'🎬', name:'数据叙事者', sub:'— 实证×通才×表达 —',
+    quote:'用数据看世界，把发现讲给每个人听。',
+    feats:['数据驱动的跨学科研究者','善于把复杂数据变成故事','让不同背景的人都能理解数据洞察','喜欢做数据新闻、可视化','工作能走进公众视野','数据对你来说不仅是数字，是故事'],
+    stress:'压力下会用幽默化解 — 但请注意不是所有人都能 get 到你的数据梗。',
+    ideal:'🎭 会讲故事的导师',
+    worst:'📊 只会放 PPT 念数据但不会讲故事的同事',
+    easter:'做的数据可视化被 3 个公众号盗用过，你选择不追究',
+    advice:'<strong>你的优势</strong>是数据+故事的组合力，但科普要以扎实研究为底。别为了"好看"而牺牲严谨。'},
+  'PGOMQ':{code:'ARCHIVIST',animal:'📚', name:'数据档案员', sub:'— 沉默的数据猎人 —',
+    quote:'我收集数据，整理数据，但不急着说什么。',
+    feats:['跨领域搜集数据的能力极强','独自整理分析，少与人讨论','数据量大到让同行惊讶','知道哪里能挖到别人挖不到的数据','很少跟人分享你的数据宝藏','你觉得数据自己会说话'],
+    stress:'压力下会躲进数据库 — 几天几夜不出来只和数据对话。',
+    ideal:'🗃️ 自己也是数据控的导师',
+    worst:'🚪 每次都想进你数据文件夹的同事',
+    easter:'硬盘里有 12TB 数据，但只用了 10% 发表过东西',
+    advice:'<strong>你的优势</strong>是数据搜集力，但数据只有被用才有价值。试着和 1-2 个理论家合作。'},
+  'PGOFX':{code:'QUICKSHOT',animal:'📸', name:'数据快枪手', sub:'— 实证×通才×冲刺 —',
+    quote:'看到机会，抓数据，发 paper，下一个。',
+    feats:['日常稳步积累多领域数据源','关键时刻快速定位需要的数据集','短时间产出实证论文','擅长快速抓住热点数据故事','能在热点领域"抢到首发"','研究对机会敏感'],
+    stress:'压力下反而更敏锐 — 越忙越能发现新机会。但请注意不是所有机会都值得追。',
+    ideal:'🎯 知道怎么"抓机会"的导师',
+    worst:'📚 把数据整理成艺术但从不输出的同事',
+    easter:'一年发表的论文里有 60% 是"热点快评"，引用数也还不错',
+    advice:'<strong>你的优势</strong>是抓住机会的敏锐度，但太急着发容易牺牲严谨性。给自己留出"沉淀期"。'},
+  'PGOFQ':{code:'EXPLORER', animal:'🧭', name:'数据探险家', sub:'— 实证×通才×沉默 —',
+    quote:'一个人跑遍田野和数据库，带回旁人未见的宝藏。',
+    feats:['偏好自己设计执行数据采集','很少和人合作做项目','数据故事精彩但多为独角戏','享受独自探索的感觉','能发现别人看不到的数据宝藏','你的研究是个人冒险'],
+    stress:'压力下会去"田野" — 无论现实还是虚拟田野，只有和数据在一起才能放松。',
+    ideal:'🗺️ 鼓励独立探索的导师',
+    worst:'👥 每次都要组队的同事',
+    easter:'有过一次自己掏腰包做田野调查，结果变成了顶刊论文',
+    advice:'<strong>你的优势</strong>是原始数据优势，考虑和一个擅长建模的研究者配对 — 你出数据，ta 出模型。'},
+  'PGLMX':{code:'AMPLIFIER',animal:'📢', name:'实证扩音器', sub:'— 实证×协作×表达 —',
+    quote:'让团队的数据，被全世界听见。',
+    feats:['把团队数据洞察推向公众','能带动团队做有传播力的实证项目','连接学术圈与公众数据素养','实验室的"公关大使"','能让严肃研究被更多人知道','学术传播对你来说是一种责任'],
+    stress:'压力下会开更多会 — 不是逃避，是找更多能帮你把研究"传出去"的渠道。',
+    ideal:'📣 支持学术传播的导师',
+    worst:'🧻 觉得"传播就是不务正业"的老派同事',
+    easter:'做过的 data story 在微博上被转发 10k+ 次 — 导师第一次表扬了你',
+    advice:'<strong>你的优势</strong>是传播力，但科普要以扎实研究为基础。保持发表高质量学术论文的节奏。'},
+  'PGLMQ':{code:'VAULT',    animal:'🗄️', name:'数据宝库', sub:'— 沉默的协作数据支撑 —',
+    quote:'团队里那个把所有数据理清楚的人，没我你们什么都做不了。',
+    feats:['团队中的数据支撑者','默默搜集整理，为他人提供弹药','数据管理能力一流','没人知道你花了多少时间','但每次需要数据第一个找你','享受被需要但不被看见'],
+    stress:'压力下反而会更细致 — 加班把数据整理好，确保没人用错，确保一切可复现。',
+    ideal:'🧪 重视数据质量的导师',
+    worst:'💥 拿到你数据就乱改一通然后出错的同事',
+    easter:'是团队数据字典的唯一维护者，上面有 4000+ 变量定义，全手写',
+    advice:'<strong>你的优势</strong>是基础支撑，主动把你的数据集整理成可公开资源。那才是真正的 legacy。'},
+  'PGLFX':{code:'RALLY',    animal:'📈', name:'实证集结号', sub:'— 实证×协作×冲刺 —',
+    quote:'召集大家，把数据打造成能讲故事的成果。',
+    feats:['能快速组建实证导向团队','擅长发起有趣且有冲击力的项目','让团队产出既扎实又有影响力','实验室里的"项目发起人"','能让每个人的长处都发挥出来','短期能把事情做大'],
+    stress:'压力下会召集更多人 — 但请注意，人多不一定效率高，选对人比选人多更重要。',
+    ideal:'🏁 知道怎么带人冲刺的导师',
+    worst:'🐌 进度永远落后的队友',
+    easter:'一年能发起 4-5 个新项目，其中至少 1 个爆了',
+    advice:'<strong>你的优势</strong>是组织能力，但冲刺完容易留下烂尾。主动给自己安排项目"收尾周"。'},
+  'PGLFQ':{code:'STEADY',   animal:'📋', name:'稳定数据员', sub:'— 沉默的协作数据把关者 —',
+    quote:'我保证数据不出错，就这样。',
+    feats:['团队数据质量的最终把关者','很少第一作者但不可或缺','方法严谨到令人尊敬','就是团队的"质量控制部"','压力来临时更冷静','别人做出来的东西你都想再检查一遍'],
+    stress:'压力下会更严格 — 反复检查每一个数字直到自己满意。其他人觉得你太慢，但你知道数据错了什么都完了。',
+    ideal:'🧪 一丝不苟的导师',
+    worst:'💣 给你一堆未经检查的数据让你"直接用"的同事',
+    easter:'纠正过导师的数据错误（私下的），导师至今不知道是你改的',
+    advice:'<strong>你的优势</strong>是可靠性，把方法贡献单独抽出来发表。数据质量本身就是一个贡献。'},
+  'PSOMX':{code:'INSTRUCTOR',animal:'🏫',name:'实证教官', sub:'— 实证×专才×独行×表达 —',
+    quote:'我不仅会做，还能教会你怎么做。',
+    feats:['窄领域内的实证权威','数据采集和分析方法扎实','擅长向同行和学生讲解方法','你的方法被很多人学走','但别人学走的也只是方法不是你的洞见','享受教学和分享'],
+    stress:'压力下反而会更想分享 — 因为你觉得"如果不把方法传出去万一我出事了怎么办"。',
+    ideal:'🎓 把培养下一代作为己任的导师',
+    worst:'🙈 学了你的方法但不引用你的同事',
+    easter:'有一个只有自己知道的"实证方法"文件夹，里面 1000 行代码注释',
+    advice:'<strong>你的优势</strong>是方法专精+表达，适合做领域内的意见领袖。多做方法教程和指南。'},
+  'PSOMQ':{code:'CRAFTSMAN',animal:'🧪', name:'实证匠人', sub:'— 沉默的实证专才 —',
+    quote:'不问意义，只问数据是否干净。',
+    feats:['极度注重数据质量和方法严谨','很少做理论延伸','论文以方法细节闻名','别人读你的论文觉得"太细了吧"','但你觉得这才是学术该有的样子','你不跟人讨论方法，因为你知道自己是对的'],
+    stress:'压力下会更苛刻 — 把所有同事的数据都重新检查一遍然后默默给他们排了个名。',
+    ideal:'🔬 自己也动手做实验的导师',
+    worst:'📝 不做独立实证就写论文的理论家',
+    easter:'有一本 200 页"实验笔记"，记录了每一个失败的实验',
+    advice:'<strong>你的优势</strong>是严谨性，但学术研究需要"为什么"来驱动。试着回答你做这些数据究竟为了什么问题。'},
+  'PSOFX':{code:'RACER',    animal:'🏎️', name:'实证赛车手', sub:'— 实证×专才×冲刺 —',
+    quote:'短时间内跑出漂亮数据，别人还在设计问卷。',
+    feats:['数据采集效率极高','快速决定用什么方法','短周期产出高质量实证','别人用一个月你用一周','享受高效带来的成就感','实验室最快的人'],
+    stress:'压力下会更快 — "还能再快一点吗？" 但请记得给自己加一道冷却期。',
+    ideal:'🏁 欣赏效率的导师',
+    worst:'🐢 设计问卷就用了两周的同事',
+    easter:'最快一次从想法到提交用了 72 小时 — 导师以为攒了半年的数据',
+    advice:'<strong>你的优势</strong>是速度，但快容易牺牲严谨。数据出来后放一周再分析。'},
+  'PSOFQ':{code:'CRAFTSMAN-S',animal:'🔬', name:'实证匠人·沉默版', sub:'— 沉默的实证匠人 —',
+    quote:'我按自己的节奏做事，快慢我自己决定。',
+    feats:['实证匠人但更沉默','喜欢独自解决问题','不讨论方法因为知道自己对','结果说话'],
+    stress:'压力下关上门，没人知道你是在加班还是在摸鱼。',
+    ideal:'🧪 手把手带实验的导师，但不逼你社交',
+    worst:'📝 整天开会讨论"方法论"的理论家',
+    easter:'你有自己的实验笔记系统，别人看不懂但你很清楚',
+    advice:'<strong>你的优势</strong>是自律，偶尔和人聊聊方法也不错。'},
+  'PSLMX':{code:'QUARTERBACK',animal:'🧭',name:'实证四分卫', sub:'— 实证×专才×协作×表达 —',
+    quote:'既能带队收集数据，又能把成果推到台前。',
+    feats:['实证研究的天然领导者','擅长分配数据采集任务','把团队数据变成高影响力成果','实验室的"王牌"','既能干又能讲还能带人','导师最放心把项目交给你'],
+    stress:'压力下反而变成"超人" — 一个人干三个人的活同时协调所有人。但请注意不要把自己烧干。',
+    ideal:'🏆 真的把项目交给你做主的导师',
+    worst:'👀 把你干的活算在自己头上的 senior',
+    easter:'带过的组平均产出是其他组的 2.3 倍',
+    advice:'<strong>你的优势</strong>是组织实证研究的能力，但不要变成"项目管理员"。保持自己亲手分析数据的手感。'},
+  'PSLMQ':{code:'GUARDIAN', animal:'🛡️', name:'数据守门员', sub:'— 沉默的实证团队把关者 —',
+    quote:'数据质量是我最后的底线。',
+    feats:['团队数据质量的最终把关者','很少当第一作者但不可或缺','方法严谨到令人尊敬','就是团队的"质量保证"','比任何人都更在意细节','压力下最冷静的那个'],
+    stress:'压力下会更严苛 — 开始检查每个人的数据、代码、引用... 整个实验室都会怕你。',
+    ideal:'🧪 把质量看得比速度重的导师',
+    worst:'💣 把未经检查的数据塞进共享文件夹的同事',
+    easter:'驳回过导师的数据，导师沉默一周后回来对你说"你是对的"',
+    advice:'<strong>你的优势</strong>是可靠性，争取把方法贡献独立出来发表。'},
+  'PSLFX':{code:'SILO',     animal:'⚙️', name:'实证流水线', sub:'— 实证×专才×协作×冲刺 —',
+    quote:'高效、标准、可靠。像精密仪器一样工作。',
+    feats:['把冲刺节奏注入团队实证','短周期内跑出扎实数据','带动整个团队的产出效率','团队里的"效率担当"','能让数据采集标准化','享受快且稳的节奏'],
+    stress:'压力下反而让流水线转得更快 — 但请注意标准化会扼杀创意。',
+    ideal:'⚙️ 喜欢流程化的导师',
+    worst:'🎲 每次都想改流程的"创意型"同事',
+    easter:'设计的数据采集流程现在全实验室都在用',
+    advice:'<strong>你的优势</strong>是效率，但标准化的流程也会让人麻木。留一块"不标准化"的时间做探索。'},
+  'PSLFQ':{code:'SHADOW',   animal:'👤', name:'沉默实证守门员', sub:'— 沉默的协作实证把关者 —',
+    quote:'你通常注意不到我，但我一直在把关。',
+    feats:['实证团队里沉默的把关者','很少第一作者但不可或缺','数据质量的最终防线','做得多说得少','压力下你最靠谱','没人知道你加班多少'],
+    stress:'压力下默默承担所有脏活累活直到项目成功。没人知道你做了多少。',
+    ideal:'🌑 话少事多的导师',
+    worst:'🗣️ 功劳照单全收的同事',
+    easter:'帮过 7 个人改过代码，没人知道是你',
+    advice:'<strong>你的优势</strong>是可靠，但沉默不等于不存在。主动争取署名机会。'},
+};
+
+// -------- Shared state --------
+let cur=0, scores={D1:0,D2:0,D3:0,D4:0,D5:0}, answered={};
+let pieChart, dimChart, trendChart, radarChart;
+
+// -------- Page navigation --------
+function go(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('topNav').style.display = (id==='welcome') ? 'none' : 'flex';
+  document.querySelectorAll('#topNav button').forEach(b=>b.classList.remove('active'));
+  const map={welcome:'navWelcome',quiz:'navQuiz',dashboard:'navDash'};
+  if(map[id]) document.getElementById(map[id]).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(id==='dashboard') dashRefresh();
+}
+
+// -------- Quiz logic --------
+function startTest(){ cur=0; Object.keys(scores).forEach(k=>scores[k]=0); answered={}; renderQ(); go('quiz'); }
+function renderQ(){
+  const q=QS[cur];
+  document.getElementById('qSrc').textContent = '📎 来源：'+q.src;
+  document.getElementById('qTxt').textContent = (cur+1)+'. '+q.text;
+  const opts = document.getElementById('qOpts'); opts.innerHTML = '';
+  ['a','b','c','d'].forEach((key,idx)=>{
+    const o=q[key], picked=answered[cur]===key;
+    const b=document.createElement('button');
+    b.className='opt'+(picked?' selected':'');
+    b.innerHTML=`<i class="fa-solid fa-${String.fromCharCode(97+idx)}"></i><span>${o.t}</span>`;
+    b.onclick=()=>pick(key);
+    opts.appendChild(b);
+  });
+  const p=((cur+1)/QS.length*100).toFixed(0);
+  document.getElementById('qfill').style.width=p+'%';
+  document.documentElement.style.setProperty('--prog',p);
+  document.getElementById('rn').textContent=`${cur+1}/${QS.length}`;
+  document.getElementById('bp').disabled = cur===0;
+  document.getElementById('bn').textContent = cur===QS.length-1 ? '🚀 看结果！' : '下一题 →';
+  document.getElementById('bn').disabled = !answered[cur];
+}
+function pick(key){
+  if(answered[cur]){ const old=QS[cur][answered[cur]].d; for(const k in old) scores[k]-=old[k]; }
+  answered[cur]=key;
+  const d=QS[cur][key].d; for(const k in d) scores[k]+=d[k];
+  renderQ();
+}
+function prevQ(){ if(cur>0){cur--;renderQ();} }
+function nextQ(){ if(cur<QS.length-1){cur++;renderQ();} else { showRes(); } }
+document.addEventListener('keydown', e=>{
+  if(!document.getElementById('quiz').classList.contains('active')) return;
+  if(e.key==='ArrowLeft') prevQ();
+  if(e.key==='ArrowRight' && answered[cur]) nextQ();
+});
+
+function makeCode(){
+  let c='';
+  c += scores.D1>=0 ? 'T':'P';
+  c += scores.D2>=0 ? 'G':'S';
+  c += scores.D3>=0 ? 'O':'L';
+  c += scores.D4>=0 ? 'M':'F';
+  c += scores.D5>=0 ? 'X':'Q';
+  return c;
+}
+function findT(code){
+  let t = TYPES[code];
+  if(t && t.mergeTo) t = TYPES[t.mergeTo];
+  if(t) return t;
+  let best=null, bd=999;
+  for(const k of Object.keys(TYPES)){
+    const v=TYPES[k]; if(v.mergeTo) continue;
+    let d=0; for(let i=0;i<5;i++) if(k[i]!==code[i]) d++;
+    if(d<bd){bd=d;best=v;}
+  }
+  return best;
+}
+
+// -------- Storage --------
+function loadData(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }catch(e){ return []; } }
+function saveData(arr){ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
+
+function saveResult(code, type, scores){
+  try{
+    let arr = loadData();
+    arr.push({
+      id: Date.now(),
+      code: code,
+      typeCode: type.code,
+      typeName: type.name,
+      animal: type.animal,
+      sub: type.sub,
+      quote: type.quote,
+      scores: {...scores},
+      timestamp: new Date().toISOString()
+    });
+    saveData(arr);
+    console.log('✅ 结果已保存，累计 '+arr.length+' 条');
+    return arr.length;
+  }catch(e){ console.warn('保存失败:', e); return -1; }
+}
+
+// -------- Result render --------
+function showRes(){
+  const code=makeCode();
+  const type=findT(code);
+  celebrate();
+  const total = saveResult(code, type, scores);
+  go('result');
+  document.getElementById('resCode').textContent = type.code;
+  document.getElementById('resSub').textContent = type.sub;
+  document.getElementById('resAnimal').textContent = type.animal;
+  document.getElementById('resQuote').textContent = type.quote;
+  document.getElementById('resStress').textContent = type.stress;
+  document.getElementById('rIc').textContent = type.ideal.split(' ')[0];
+  document.getElementById('rIt').textContent = type.ideal.replace(/^[^ ]+ /,'');
+  document.getElementById('rWc').textContent = type.worst.split(' ')[0];
+  document.getElementById('rWt').textContent = type.worst.replace(/^[^ ]+ /,'');
+  document.getElementById('resEaster').textContent = type.easter;
+  document.getElementById('resAdvice').innerHTML = type.advice;
+  document.getElementById('resBadge').textContent = 'YOUR ARCHETYPE · '+code;
+  const ul=document.getElementById('resFeats'); ul.innerHTML='';
+  type.feats.forEach(f=>{
+    const li=document.createElement('li');
+    li.innerHTML=`<i class="fa-solid fa-star"></i><span>${f}</span>`;
+    ul.appendChild(li);
+  });
+  const dg=document.getElementById('resDims'); dg.innerHTML='';
+  const max=8;
+  DIMS.forEach((d,i)=>{
+    const s=scores[d.id]||0;
+    const pct=Math.max(10,Math.min(90,50+(s/max)*40));
+    const row=document.createElement('div');
+    row.className='dr';
+    row.innerHTML=`
+      <div class="dl">${d.left}</div>
+      <div class="db"><div class="dc"></div>
+        <div class="df" style="width:${pct}%;background:${s>=0?'linear-gradient(90deg,var(--neon1),var(--neon2))':'linear-gradient(90deg,var(--neon3),var(--gold))'}"></div>
+      </div>
+      <div class="de" style="color:${s>=0?'var(--neon1)':'var(--neon3)'}">${d.right}</div>
+    `;
+    dg.appendChild(row);
+  });
+  if(total > 0) setTimeout(()=>toast('💾 已保存！累计 '+total+' 条'), 800);
+}
+
+function celebrate(){
+  const box=document.getElementById('confetti');
+  const colors=['var(--neon1)','var(--neon2)','var(--neon3)','var(--gold)','#4ade80'];
+  for(let i=0;i<80;i++){
+    const p=document.createElement('div');
+    p.className='cp';
+    p.style.left=Math.random()*100+'%';
+    p.style.background=colors[Math.floor(Math.random()*colors.length)];
+    p.style.animationDuration=(2+Math.random()*3)+'s';
+    p.style.animationDelay=Math.random()+'s';
+    p.style.borderRadius=Math.random()>0.5?'50%':'2px';
+    p.style.width=p.style.height=(6+Math.random()*8)+'px';
+    box.appendChild(p);
+    setTimeout(()=>p.remove(),5000);
+  }
+}
+function share(){
+  const c=document.getElementById('resCode').textContent;
+  const q=document.getElementById('resQuote').textContent;
+  const text=`我在 ATI 学术人格测试里是【${c}】${document.getElementById('resSub').textContent}\n"${q}"\n来测测你的学术人格到底有多离谱？`;
+  if(navigator.clipboard){ navigator.clipboard.writeText(text).then(()=>toast('已复制到剪贴板 ✓')); }
+  else toast('请手动选中分享文案');
+}
+
+// ============ DASHBOARD ============
+function dashRefresh(){
+  const data = loadData();
+  renderStats(data);
+  renderCharts(data);
+  renderTable();
+}
+
+function renderStats(data){
+  const total = data.length;
+  const types = new Set(data.map(d=>d.typeCode)).size;
+  const today = new Date().toDateString();
+  const todayCount = data.filter(d=>new Date(d.timestamp).toDateString()===today).length;
+  const weekAgo = Date.now() - 7*24*3600*1000;
+  const weekCount = data.filter(d=>new Date(d.timestamp).getTime()>weekAgo).length;
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat t1"><div class="lbl">总测试数</div><div class="v">${total}</div><div class="sub">records</div></div>
+    <div class="stat t2"><div class="lbl">覆盖类型</div><div class="v">${types}/30</div><div class="sub">archetypes</div></div>
+    <div class="stat t3"><div class="lbl">今日新增</div><div class="v">${todayCount}</div><div class="sub">today</div></div>
+    <div class="stat t4"><div class="lbl">近 7 天</div><div class="v">${weekCount}</div><div class="sub">last 7d</div></div>
+  `;
+}
+
+function renderCharts(data){
+  // PIE
+  const tc = {};
+  data.forEach(d=>{ const k=(d.typeCode||d.code)+' '+(d.typeName||''); tc[k]=(tc[k]||0)+1; });
+  const sorted = Object.entries(tc).sort((a,b)=>b[1]-a[1]).slice(0,15);
+  const pctx = document.getElementById('pieChart').getContext('2d');
+  if(pieChart) pieChart.destroy();
+  pieChart = new Chart(pctx, {
+    type:'doughnut',
+    data:{ labels:sorted.map(s=>s[0]), datasets:[{data:sorted.map(s=>s[1]),
+      backgroundColor:['#ff6b9d','#c44fff','#4facff','#f4c700','#00ffd5','#ff8e72','#7dff7d','#ffb3c7','#a78bfa','#60a5fa','#fbbf24','#34d399','#f87171','#818cf8','#fde047'],
+      borderColor:'rgba(10,6,18,0.8)', borderWidth:2, hoverOffset:8 }]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'right', labels:{ color:'#8a7fb5', font:{size:11}, boxWidth:12, padding:8 } } } }
+  });
+
+  // DIMS
+  const ds={D1:0,D2:0,D3:0,D4:0,D5:0};
+  data.forEach(d=>{ if(d.scores) for(const k in d.scores) ds[k]=(ds[k]||0)+d.scores[k]; });
+  const davgs = data.length ? Object.values(ds).map(v=>+(v/data.length).toFixed(2)) : [0,0,0,0,0];
+  const dctx = document.getElementById('dimChart').getContext('2d');
+  if(dimChart) dimChart.destroy();
+  dimChart = new Chart(dctx, {
+    type:'bar',
+    data:{ labels:DIMS.map(d=>d.name.split(' ')[0]), datasets:[{label:'群体平均分',data:davgs,
+      backgroundColor:davgs.map(v=>v>=0?'rgba(196,79,255,0.7)':'rgba(79,172,255,0.7)'),
+      borderColor:davgs.map(v=>v>=0?'#c44fff':'#4facff'), borderWidth:1, borderRadius:6 }]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      scales:{ x:{ticks:{color:'#8a7fb5',font:{size:11}},grid:{color:'rgba(255,255,255,0.04)'}},
+               y:{ticks:{color:'#8a7fb5'},grid:{color:'rgba(255,255,255,0.05)'},suggestedMax:4,suggestedMin:-4}},
+      plugins:{legend:{display:false}} }
+  });
+
+  // TREND
+  const days=[];
+  for(let i=13;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); days.push(d.toISOString().slice(0,10)); }
+  const trendData = days.map(day=> data.filter(d=>(d.timestamp||'').slice(0,10)===day).length);
+  const tctx = document.getElementById('trendChart').getContext('2d');
+  if(trendChart) trendChart.destroy();
+  trendChart = new Chart(tctx, {
+    type:'line',
+    data:{ labels:days.map(d=>d.slice(5)), datasets:[{label:'测试数',data:trendData,
+      borderColor:'#c44fff', backgroundColor:'rgba(196,79,255,0.2)',
+      fill:true, tension:0.4, pointBackgroundColor:'#ff6b9d', pointRadius:4 }]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      scales:{ x:{ticks:{color:'#8a7fb5',font:{size:10}},grid:{color:'rgba(255,255,255,0.04)'}},
+               y:{ticks:{color:'#8a7fb5',stepSize:1},grid:{color:'rgba(255,255,255,0.05)'},beginAtZero:true}},
+      plugins:{legend:{display:false}} }
+  });
+
+  // RADAR
+  const radarData = davgs.map(v=> Math.max(0,Math.min(100,50+(v/4)*50)));
+  const rctx = document.getElementById('radarChart').getContext('2d');
+  if(radarChart) radarChart.destroy();
+  radarChart = new Chart(rctx, {
+    type:'radar',
+    data:{ labels:DIMS.map(d=>d.name), datasets:[{label:'群体画像',data:radarData,
+      borderColor:'#ff6b9d', backgroundColor:'rgba(255,107,157,0.2)', pointBackgroundColor:'#f4c700', pointRadius:5 }]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      scales:{ r:{ min:0, max:100, ticks:{display:false}, grid:{color:'rgba(196,79,255,0.15)'}, angleLines:{color:'rgba(196,79,255,0.15)'}, pointLabels:{color:'#f1eef6',font:{size:11}} } },
+      plugins:{legend:{display:false}} }
+  });
+}
+
+function renderTable(){
+  const data = loadData();
+  const q = (document.getElementById('searchBox')?.value||'').trim().toLowerCase();
+  const filtered = data
+    .filter(d=>!q || (d.typeName||'').toLowerCase().includes(q) || (d.typeCode||'').toLowerCase().includes(q) || (d.code||'').toLowerCase().includes(q) || (d.animal||'').includes(q))
+    .sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+  document.getElementById('tblCount').textContent = `· ${filtered.length}/${data.length}`;
+  const c=document.getElementById('tblContainer');
+  if(filtered.length===0){
+    c.innerHTML=`<div class="empty"><div class="bigic">🧪</div><div style="font-size:.95rem;margin-bottom:6px">${data.length===0?'还没有测试数据':'没有匹配结果'}</div>
+      <div style="font-size:.78rem">${data.length===0?'去首页测一次吧':'换个关键词试试'}</div></div>`;
+    return;
+  }
+  let h=`<table><thead><tr><th>⏱ 时间</th><th>🎭 类型</th><th>代号</th><th>🐾</th><th>5 维得分</th><th>操作</th></tr></thead><tbody>`;
+  filtered.forEach(d=>{
+    const t=new Date(d.timestamp);
+    const tstr=t.toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+    const sc=d.scores||{};
+    const scStr=['D1','D2','D3','D4','D5'].map((k,i)=>{
+      const v=sc[k]||0; const letter=(d.code||'-----')[i]||'-';
+      return `<span class="bdg ${i%2===0?'bdg-t':'bdg-g'}" style="${v>=0?'':'opacity:.55'}">${letter}${v>=0?'+':''}${v.toFixed(1)}</span>`;
+    }).join(' ');
+    h+=`<tr><td>${tstr}</td><td><span class="typecode">${d.typeName||'—'}</span></td>
+      <td><span class="tcode">${d.code||'—'}</span></td>
+      <td class="animal">${d.animal||'—'}</td><td>${scStr}</td>
+      <td><button class="btn btn-ghost" style="padding:3px 10px;font-size:.72rem" onclick="showDetail(${data.indexOf(d)})"><i class="fa-solid fa-eye"></i></button>
+      <button class="btn btn-danger" style="padding:3px 10px;font-size:.72rem" onclick="delOne(${data.indexOf(d)})"><i class="fa-solid fa-xmark"></i></button></td></tr>`;
+  });
+  h+='</tbody></table>';
+  c.innerHTML=h;
+}
+
+function showDetail(idx){
+  const data=loadData(); const d=data[idx]; if(!d)return;
+  const scores=d.scores||{}; const max=4;
+  const dimsHtml=DIMS.map(dim=>{
+    const v=scores[dim.id]||0; const pct=Math.max(5,Math.min(95,50+(v/max)*45));
+    const color=v>=0?'linear-gradient(90deg,#ff6b9d,#c44fff)':'linear-gradient(90deg,#4facff,#f4c700)';
+    return `<div class="dm"><div class="label"><span>${dim.name}</span><span style="font-family:Consolas">${v>=0?'+':''}${v.toFixed(1)}</span></div>
+      <div class="bar"><div class="fi" style="width:${pct}%;background:${color}"></div></div></div>`;
+  }).join('');
+  document.getElementById('modalBody').innerHTML=`<button class="xbtn" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    <div class="ma">${d.animal||'🎭'}</div><div class="mc">${d.typeCode||d.code||'—'}</div>
+    <div class="mt">${d.typeName||'—'} ${d.sub||''}</div>
+    <div class="mq">"${d.quote||''}"</div>${dimsHtml}
+    <div style="margin-top:12px;font-size:.7rem;color:var(--muted);letter-spacing:1px">${new Date(d.timestamp).toLocaleString('zh-CN')}</div>`;
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+
+function delOne(idx){ if(!confirm('确定删除这条记录？'))return; const data=loadData(); data.splice(idx,1); saveData(data); dashRefresh(); toast('🗑️ 已删除'); }
+function clearAll(){ const data=loadData(); if(data.length===0){toast('没有数据');return;}
+  if(!confirm('⚠️ 确定清空全部 '+data.length+' 条？此操作不可恢复！'))return;
+  localStorage.removeItem(STORAGE_KEY); dashRefresh(); toast('🧹 已清空'); }
+
+function exportAll(){
+  const data=loadData(); if(data.length===0){toast('没有数据');return;}
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=url; a.download='ati_full_'+new Date().toISOString().slice(0,10)+'.json'; a.click();
+  URL.revokeObjectURL(url); toast('📦 已导出 '+data.length+' 条');
+}
+
+function importJSON(input){
+  const file=input.files[0]; if(!file)return;
+  const r=new FileReader(); r.onload=e=>{
+    try{
+      const imported=JSON.parse(e.target.result); if(!Array.isArray(imported))throw new Error('JSON 必须是数组');
+      let data=loadData(); let added=0;
+      imported.forEach(item=>{ if(!item.id||!data.find(d=>d.id===item.id)){data.push(item);added++;} });
+      data.sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp)); saveData(data); dashRefresh();
+      toast('📥 导入成功！新增 '+added+' 条 · 总计 '+data.length);
+    }catch(err){ alert('导入失败：'+err.message); }
+    input.value='';
+  }; r.readAsText(file);
+}
+
+function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+
+// 自动刷新（dashboard 每 3 秒检测）
+setInterval(()=>{
+  if(!document.getElementById('dashboard').classList.contains('active')) return;
+  const data=loadData();
+  const tbody = document.querySelector('#tblContainer tbody');
+  const rows = tbody ? tbody.querySelectorAll('tr').length : 0;
+  if(data.length !== rows) dashRefresh();
+}, 3000);
+</script>
+</body>
+</html>
